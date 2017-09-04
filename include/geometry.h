@@ -23,27 +23,27 @@ void free_Vec(Vec * vec);
 ** @param vec2 Second vector to be summed
 ** @param result Vector in which to store result
 */
-void sumVec(Vec * vec1, Vec * vec2, Vec * result);
+void sum_Vec(Vec * vec1, Vec * vec2, Vec * result);
 /*
 ** Calculate the vector difference vec1 - vec2
 ** @param vec1 The minuend vector
 ** @param vec2 The subtrahend vector
 ** @param result Vector in which to store difference vector
 */
-void diffVec(Vec * vec1, Vec * vec2, Vec * result);
+void diff_Vec(Vec * vec1, Vec * vec2, Vec * result);
 /*
 ** Return the scalar product of two vectors
 */
-float dotVec(Vec * vec1, Vec * vec2);
+float dot_Vec(Vec * vec1, Vec * vec2);
 
 /*
 ** Return the square of the distance between two points
 */
-float dist_square(Vec * point1, Vec * point2);
+float distance_square(Vec * point1, Vec * point2);
 /*
 ** Return the distance between two points
 */
-float dist(Vec * vec1, Vec * vec2);
+float distance(Vec * vec1, Vec * vec2);
 
 /*
 ** Return the square of the magnitude of a vector
@@ -55,3 +55,9 @@ float magnitude_square(Vec * vec1);
 ** @return A pointer to a new vector object
 */
 float magnitude(Vec * vec1);
+/*
+** Calculate normalized vector
+** @param vec1 The vector to normalize
+** @param result Vector in which to store difference vector
+*/
+void norm_Vec(Vec * vec1, Vec * result);
