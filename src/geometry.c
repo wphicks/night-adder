@@ -49,7 +49,7 @@ float distance_square(Vec * point1, Vec * point2) {
   return result;
 }
 
-float distance(Vec * vec1, Vec * vec2){
+float distance(Vec * vec1, Vec * vec2) {
   return sqrt(distance_square(vec1, vec2));
 }
 
@@ -62,9 +62,13 @@ float magnitude(Vec * vec1) {
 }
 
 void norm_Vec(Vec * vec1, Vec * result) {
-  float mag = magnitude(vec1);
+  float inv_mag = 1/magnitude(vec1);
+  multiply_Vec(vec1, inv_mag, result);
+}
+
+void multiply_Vec(Vec * vec1, float scalar, Vec * result) {
   int i;
   for (i = 0; i < VECDIM; ++i) {
-    result->components[i] = vec1->components[i]/mag;
+    result->components[i] = vec1->components[i] * scalar;
   }
 }

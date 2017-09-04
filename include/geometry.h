@@ -61,3 +61,10 @@ float magnitude(Vec * vec1);
 ** @param result Vector in which to store difference vector
 */
 void norm_Vec(Vec * vec1, Vec * result);
+/*
+** Calculate the vector scaled by a scalar
+** @param vec1 The vector to be scaled
+** @param scalar The scalar by which to multiply the vector
+** @param result Vector in which to store result
+*/
+void multiply_Vec(Vec * vec1, float scalar, Vec * result);
