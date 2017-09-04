@@ -31,6 +31,9 @@ Integrator * create_Integrator(int thread_count, Particle * particles, int parti
 
 void free_Integrator(Integrator * old_int) {
   free(old_int->workers);
+  free(old_int->square_sum_radii);
+  free(old_int->pair_restitution);
+  free(old_int->pair_mass);
   free(old_int);
 }
 
@@ -86,7 +89,6 @@ float pair_dist_square(Integrator * integ, int i, int j) {
 int collide(Integrator * integ, int i, int j) {
   Particle * part1 = integ->particles[i];
   Particle * part2 = integ->particles[j];
-  /* float penetration; */
   float collision_projection;
   float impulse_coefficient;
   dist2 = dist_square(part1->position, part2->position);
@@ -96,7 +98,6 @@ int collide(Integrator * integ, int i, int j) {
   /* TODO: Do following by worker */
   /* Below line needs to be atomic */
   diff_Vec(part2->position, part1->position, integ->swap_vecs + 0); /* Position diff */
-  /* penetration = sqrt(dist2) - magnitude(integ->swap_vecs + 0); */
   norm_Vec(integ->swap_vecs + 0, integ->swap_vecs + 0); /* Collision normal */
   /* Below line needs to be atomic */
   diff_Vec(part2->velocity, part1->velocity, integ->swap_vecs + 1); /* Velocity diff */
