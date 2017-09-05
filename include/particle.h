@@ -21,9 +21,3 @@ Particle * create_Particle(float mass, float radius, float restitution);
 ** Destroy a Particle, freeing allocated memory.
 */
 void free_Particle(Particle * old_particle);
-
-/*
-** Check if two particles have collided, and update velocities if necessary.
-** @return 1 if particles have collided, else 0
-*/
-int collide(Particle * part1, Particle * part2);

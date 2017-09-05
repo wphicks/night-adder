@@ -10,7 +10,7 @@ INCFLAGS=-Iinclude
 LDTESTFLAGS=-lgtest -lgtest_main -lpthread -lrt
 
 CXX=clang++
-CXXFLAGS=-Wall -std=c++14
+CXXFLAGS=-Wall -std=c++14 -g
 
 # Configurable options
 PROFFLAGS=-p
@@ -42,7 +42,7 @@ endif
 
 # Targets
 TARGETS=$(TESTS)
-TESTS=$(BUILDDIR)/geometry_test $(BUILDDIR)/particle_test
+TESTS=$(BUILDDIR)/geometry_test $(BUILDDIR)/particle_test $(BUILDDIR)/integrator_test
 
 .PHONY: all test memtest objdump clean
 
@@ -73,5 +73,10 @@ $(BUILDDIR)/geometry_test: $(BUILDDIR)/geometry.o $(TESTDIR)/geometry_test.cpp
 
 $(BUILDDIR)/particle.o: $(SRCDIR)/particle.c $(INCDIR)/particle.h
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/particle.c -o $(BUILDDIR)/particle.o
-$(BUILDDIR)/particle_test: $(BUILDDIR)/particle.o $(TESTDIR)/particle_test.cpp
+$(BUILDDIR)/particle_test: $(BUILDDIR)/geometry.o $(BUILDDIR)/particle.o $(TESTDIR)/particle_test.cpp
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(BUILDDIR)/geometry.o $(BUILDDIR)/particle.o $(TESTDIR)/particle_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/particle_test
+
+$(BUILDDIR)/integrator.o: $(SRCDIR)/integrator.c $(INCDIR)/integrator.h
+	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/integrator.c -o $(BUILDDIR)/integrator.o
+$(BUILDDIR)/integrator_test: $(BUILDDIR)/geometry.o $(BUILDDIR)/particle.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(BUILDDIR)/geometry.o $(BUILDDIR)/particle.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/integrator_test
