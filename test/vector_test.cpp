@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 extern "C" {
-  #include "geometry.h"
+  #include "vector.h"
 }
 
-class geometryTest : public ::testing::Test {
+class vectorTest : public ::testing::Test {
  protected:
   Vec * vec1;
   Vec * vec2;
@@ -28,34 +28,34 @@ class geometryTest : public ::testing::Test {
   }
 };
 
-TEST_F(geometryTest, sumTest) {
+TEST_F(vectorTest, sumTest) {
   sum_Vec(vec1, vec2, result);
   for (int i = 0; i < VECDIM; ++i) {
     EXPECT_FLOAT_EQ(sum[i], result->components[i]);
   }
 }
 
-TEST_F(geometryTest, diffTest) {
+TEST_F(vectorTest, diffTest) {
   diff_Vec(vec1, vec2, result);
   for (int i = 0; i < VECDIM; ++i) {
     EXPECT_FLOAT_EQ(diff[i], result->components[i]);
   }
 }
 
-TEST_F(geometryTest, dotTest) {
+TEST_F(vectorTest, dotTest) {
   EXPECT_FLOAT_EQ(-14.0f, dot_Vec(vec1, vec2));
 }
 
-TEST_F(geometryTest, distTest) {
+TEST_F(vectorTest, distTest) {
   EXPECT_FLOAT_EQ(61.0f, distance_square(vec1, vec2));
 }
 
-TEST_F(geometryTest, magnitudeTest) {
+TEST_F(vectorTest, magnitudeTest) {
   EXPECT_FLOAT_EQ(25.0f, magnitude_square(vec1));
   EXPECT_FLOAT_EQ(5.0f, magnitude(vec1));
 }
 
-TEST_F(geometryTest, normTest) {
+TEST_F(vectorTest, normTest) {
   norm_Vec(vec1, result);
   for (int i = 0; i < VECDIM; ++i) {
     EXPECT_FLOAT_EQ(norm[i], result->components[i]);

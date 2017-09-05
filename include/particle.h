@@ -1,5 +1,5 @@
 #pragma once
-#include "geometry.h"
+#include "vector.h"
 
 typedef struct {
   Vec * position;

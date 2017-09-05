@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <math.h>
-#include "geometry.h"
+#include "vector.h"
 
 Vec * create_Vec() {
   Vec * new_vec = malloc(sizeof(Vec));

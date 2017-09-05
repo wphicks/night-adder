@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "geometry.h"
+#include "vector.h"
 #include "particle.h"
 
 Particle * create_Particle(float mass, float radius, float restitution) {

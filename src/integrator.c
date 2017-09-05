@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <pthread.h>
-#include "geometry.h"
+#include "vector.h"
 #include "integrator.h"
 #define MIN(a,b) (((a)<(b))?(a):(b))
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <pthread.h>
-#include "geometry.h"
+#include "vector.h"
 #include "particle.h"
 
 typedef struct {
