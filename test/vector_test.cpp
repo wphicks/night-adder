@@ -25,6 +25,22 @@ class vectorTest : public ::testing::Test {
     }
   }
 
+  static void threaded_diff(void * vecs) {
+    Vec ** vectors = (Vec **) vecs;
+    int i;
+    for (i=0; i < thread_cycles; ++i) {
+      atomic_idiff_Vec(*(vectors), *(vectors + 1));
+    }
+  }
+
+  static void threaded_mult(void * vecs) {
+    Vec ** vectors = (Vec **) vecs;
+    int i;
+    for (i=0; i < thread_cycles; ++i) {
+      atomic_imultiply_Vec(*(vectors), -1.0);
+    }
+  }
+
   virtual void SetUp() {
     vec1 = create_Vec();
     vec2 = create_Vec();
@@ -67,6 +83,13 @@ TEST_F(vectorTest, diffTest) {
   }
 }
 
+TEST_F(vectorTest, atomic_idiffTest) {
+  atomic_idiff_Vec(vec1, vec2);
+  for (int i = 0; i < VECDIM; ++i) {
+    EXPECT_DOUBLE_EQ(diff[i], vec1->components[i].as_double);
+  }
+}
+
 TEST_F(vectorTest, dotTest) {
   EXPECT_DOUBLE_EQ(-14.0f, dot_Vec(vec1, vec2));
 }
@@ -97,9 +120,45 @@ TEST_F(vectorTest, threaded_isumTest) {
   }
   for (i=0; i < worker_count; ++i) {
     join_thread(workers[i]);
+    cleanup_thread(workers[i]);
   }
   for (int i = 0; i < VECDIM; ++i) {
     EXPECT_DOUBLE_EQ(worker_count * thread_cycles - 2, vec2->components[i].as_double);
+  }
+  free(vectors);
+}
+
+TEST_F(vectorTest, threaded_idiffTest) {
+  int i;
+  Vec ** vectors = (Vec **) malloc(2 * sizeof(Vec *));
+  vectors[0] = vec2;
+  vectors[1] = vec3;
+  for (i=0; i < worker_count; ++i) {
+    workers[i] = create_thread(threaded_diff, (void *) vectors);
+  }
+  for (i=0; i < worker_count; ++i) {
+    join_thread(workers[i]);
+    cleanup_thread(workers[i]);
+  }
+  for (int i = 0; i < VECDIM; ++i) {
+    EXPECT_DOUBLE_EQ(-worker_count * thread_cycles - 2, vec2->components[i].as_double);
+  }
+  free(vectors);
+}
+
+TEST_F(vectorTest, threaded_imultTest) {
+  int i;
+  Vec ** vectors = (Vec **) malloc(sizeof(Vec *));
+  vectors[0] = vec2;
+  for (i=0; i < worker_count; ++i) {
+    workers[i] = create_thread(threaded_mult, (void *) vectors);
+  }
+  for (i=0; i < worker_count; ++i) {
+    join_thread(workers[i]);
+    cleanup_thread(workers[i]);
+  }
+  for (int i = 0; i < VECDIM; ++i) {
+    EXPECT_DOUBLE_EQ(-2 + 4 * ((worker_count * thread_cycles) % 2) , vec2->components[i].as_double);
   }
   free(vectors);
 }

@@ -45,6 +45,17 @@ void atomic_isum_Vec(Vec * vec1, Vec * vec2);
 */
 void diff_Vec(Vec * vec1, Vec * vec2, Vec * result);
 /*
+** Atomically subtract vectors in-place
+**
+** @warning Atomicity is only guaranteed per-component, but this is still
+** valuable, since it guarantees that if V-=U and V-=W are both being carried
+** out at the same time, the resulting final V' will be equal to V - U - W
+**
+** @param vec1 Vector to be replaced by difference of itself and second vector
+** @param vec2 Vector to be added to first vector
+*/
+void atomic_idiff_Vec(Vec * vec1, Vec * vec2);
+/*
 ** Return the scalar product of two vectors
 */
 double dot_Vec(Vec * vec1, Vec * vec2);
@@ -81,3 +92,14 @@ void norm_Vec(Vec * vec1, Vec * result);
 ** @param result Vector in which to store result
 */
 void multiply_Vec(Vec * vec1, double scalar, Vec * result);
+/*
+** Atomically scale vector in-place
+**
+** @warning Atomicity is only guaranteed per-component, but this is still
+** valuable, since it guarantees that if V*=x and V*=y are both being carried
+** out at the same time, the resulting final V' will be equal to V*x*y
+**
+** @param vec1 Vector to be scaled in-place
+** @param scalar The scalar by which to multiply the vector
+*/
+void atomic_imultiply_Vec(Vec * vec1, double scalar);
