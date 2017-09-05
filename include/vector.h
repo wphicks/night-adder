@@ -25,6 +25,15 @@ void free_Vec(Vec * vec);
 */
 void sum_Vec(Vec * vec1, Vec * vec2, Vec * result);
 /*
+** Atomically add vectors in-place
+**
+** @warning Atomicity is only guaranteed per-component
+**
+** @param vec1 Vector to be replaced by sum of both vectors
+** @param vec2 Vector to be added to first vector
+*/
+void atomic_isum_Vec(Vec * vec1, Vec * vec2);
+/*
 ** Calculate the vector difference vec1 - vec2
 ** @param vec1 The minuend vector
 ** @param vec2 The subtrahend vector

@@ -2,7 +2,7 @@
 #include <pthread.h>
 #include "vector.h"
 #include "integrator.h"
-#define MIN(a,b) (((a)<(b))?(a):(b))
+#include "vbase.h"
 
 void calc_square_sum_radii(Integrator * integ);
 void calc_restitution_pairs(Integrator * integ);
@@ -61,7 +61,7 @@ void calc_restitution_pairs(Integrator * integ) {
   int j;
   for(i=0; i < integ->particle_count; ++i) {
     for(j=i+1; j < integ->particle_count; ++j) {
-      integ->pair_restitution[pair_index(integ, i, j)] = MIN(
+      integ->pair_restitution[pair_index(integ, i, j)] = __min(
         integ->particles[i]->restitution,
         integ->particles[j]->restitution
       );

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "vector.h"
+#include "vbase.h"
 
 Vec * create_Vec() {
   Vec * new_vec = malloc(sizeof(Vec));
