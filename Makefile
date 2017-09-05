@@ -56,7 +56,7 @@ endif
 TARGETS=$(TESTS)
 TESTS=$(BUILDDIR)/vector_test $(BUILDDIR)/particle_test $(BUILDDIR)/integrator_test
 
-.PHONY: all test memtest objdump clean viper
+.PHONY: all test memtest objdump clean viper init
 
 all : $(TARGETS)
 
@@ -81,6 +81,13 @@ clean:
 
 viper:
 	$(MAKE) RELEASE=$(RELEASE) DEBUG=$(DEBUG) PROFILE=$(PROFILE) OPT=$(OPT) GCC=$(GCC) -C ../viper-engine
+
+init:
+	for entry in debug opt0 opt1 opt2 opt3 profile; do\
+	    mkdir -p $(BASEBUILDDIR)/$${entry}/asm; \
+	    mkdir -p $(BASEBUILDDIR)/gcc/$${entry}/asm; \
+	done; \
+	$(MAKE) RELEASE=$(RELEASE) DEBUG=$(DEBUG) PROFILE=$(PROFILE) OPT=$(OPT) GCC=$(GCC) -C ../viper-engine init
 
 $(BUILDDIR)/nathread.o: $(SRCDIR)/nathread.linux.c $(INCDIR)/nathread.h
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/nathread.linux.c -o $(BUILDDIR)/nathread.o
