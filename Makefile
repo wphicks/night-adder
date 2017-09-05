@@ -3,7 +3,8 @@ BASEBUILDDIR:=build
 TESTDIR=test
 SRCDIR=src
 INCDIR=include
-VIPERINCDIR=../viper-engine
+VIPERINCDIR=../viper-engine ../viper-engine/thread
+VIPERBASEBUILDDIR=../viper-engine/build
 
 CC=clang
 CFLAGS=-Wall -std=c99 -pthread
@@ -28,22 +29,26 @@ ifeq ($(GCC), 1)
     CC=gcc
     CXX=g++
     BASEBUILDDIR:=build/gcc
+    VIPERBASEBUILDDIR=../viper-engine/build/gcc
 endif
 
 OPT ?= 0
 CFLAGS+=-O$(OPT)
 BUILDDIR:=$(BASEBUILDDIR)/opt$(OPT)
+VIPERBUILDDIR:=$(VIPERBASEBUILDDIR)/opt$(OPT)
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
     CFLAGS+=$(DEBUGFLAGS)
     BUILDDIR:=$(BASEBUILDDIR)/debug
+    VIPERBUILDDIR:=$(VIPERBASEBUILDDIR)/debug
 endif
 
 PROFILE ?= 0
 ifeq ($(PROFILE), 1)
     CFLAGS+=$(PROFFLAGS)
     BUILDDIR:=$(BASEBUILDDIR)/profile
+    VIPERBUILDDIR:=$(VIPERBASEBUILDDIR)/profile
 endif
 
 
@@ -77,17 +82,20 @@ clean:
 viper:
 	$(MAKE) RELEASE=$(RELEASE) DEBUG=$(DEBUG) PROFILE=$(PROFILE) OPT=$(OPT) GCC=$(GCC) -C ../viper-engine
 
+$(BUILDDIR)/nathread.o: $(SRCDIR)/nathread.linux.c $(INCDIR)/nathread.h
+	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/nathread.linux.c -o $(BUILDDIR)/nathread.o
+
 $(BUILDDIR)/vector.o: $(SRCDIR)/vector.c $(INCDIR)/vector.h viper
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/vector.c -o $(BUILDDIR)/vector.o
-$(BUILDDIR)/vector_test: $(BUILDDIR)/vector.o $(TESTDIR)/vector_test.cpp
-	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(BUILDDIR)/vector.o $(TESTDIR)/vector_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/vector_test
+$(BUILDDIR)/vector_test: $(BUILDDIR)/nathread.o $(BUILDDIR)/vector.o $(TESTDIR)/vector_test.cpp
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(BUILDDIR)/nathread.o $(VIPERBUILDDIR)/vatomic.o $(BUILDDIR)/vector.o $(TESTDIR)/vector_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/vector_test
 
 $(BUILDDIR)/particle.o: $(SRCDIR)/particle.c $(INCDIR)/particle.h
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/particle.c -o $(BUILDDIR)/particle.o
 $(BUILDDIR)/particle_test: $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(TESTDIR)/particle_test.cpp
-	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(TESTDIR)/particle_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/particle_test
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(VIPERBUILDDIR)/vatomic.o $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(TESTDIR)/particle_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/particle_test
 
 $(BUILDDIR)/integrator.o: $(SRCDIR)/integrator.c $(INCDIR)/integrator.h
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/integrator.c -o $(BUILDDIR)/integrator.o
 $(BUILDDIR)/integrator_test: $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp
-	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/integrator_test
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(VIPERBUILDDIR)/vatomic.o $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/integrator_test
