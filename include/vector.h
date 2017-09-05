@@ -29,7 +29,9 @@ void sum_Vec(Vec * vec1, Vec * vec2, Vec * result);
 /*
 ** Atomically add vectors in-place
 **
-** @warning Atomicity is only guaranteed per-component
+** @warning Atomicity is only guaranteed per-component, but this is still
+** valuable, since it guarantees that if V+=U and V+=W are both being carried
+** out at the same time, the resulting final V' will be equal to V + U + W
 **
 ** @param vec1 Vector to be replaced by sum of both vectors
 ** @param vec2 Vector to be added to first vector

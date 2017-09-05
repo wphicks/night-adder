@@ -25,6 +25,24 @@ void sum_Vec(Vec * vec1, Vec * vec2, Vec * result) {
   }
 }
 
+void atomic_isum_Vec(Vec * vec1, Vec * vec2) {
+  int i;
+  atomic_double cur_comp;
+  atomic_double cur_sum;
+  for (i = 0; i < VECDIM; ++i) {
+    for (;;) {
+      vatomic_barrier();
+      cur_comp = vec1->components[i];
+      cur_sum.as_double = cur_comp.as_double + vec2->components[i].as_double;
+      if (vatomic64_compare_exchange(
+            vec1->components[i].as_int, cur_comp.as_int, cur_sum.as_int
+          ) == cur_comp.as_int){
+        break;
+      }
+    }
+  }
+}
+
 void diff_Vec(Vec * vec1, Vec * vec2, Vec * result) {
   int i;
   for (i = 0; i < VECDIM; ++i) {
