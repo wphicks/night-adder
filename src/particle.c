@@ -2,7 +2,7 @@
 #include "vector.h"
 #include "particle.h"
 
-Particle * create_Particle(float mass, float radius, float restitution) {
+Particle * create_Particle(double mass, double radius, double restitution) {
   Particle * new_part = malloc(sizeof(Particle));
   new_part->position = create_Vec();
   new_part->velocity = create_Vec();

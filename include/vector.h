@@ -1,9 +1,11 @@
 #pragma once
 
+#include "nabase.h"
+
 #define VECDIM 2
 
 typedef struct {
-  float components[VECDIM];
+  atomic_double components[VECDIM];
 } Vec;
 
 /*
@@ -43,27 +45,27 @@ void diff_Vec(Vec * vec1, Vec * vec2, Vec * result);
 /*
 ** Return the scalar product of two vectors
 */
-float dot_Vec(Vec * vec1, Vec * vec2);
+double dot_Vec(Vec * vec1, Vec * vec2);
 
 /*
 ** Return the square of the distance between two points
 */
-float distance_square(Vec * point1, Vec * point2);
+double distance_square(Vec * point1, Vec * point2);
 /*
 ** Return the distance between two points
 */
-float distance(Vec * vec1, Vec * vec2);
+double distance(Vec * vec1, Vec * vec2);
 
 /*
 ** Return the square of the magnitude of a vector
 ** @return A pointer to a new vector object
 */
-float magnitude_square(Vec * vec1);
+double magnitude_square(Vec * vec1);
 /*
 ** Return the magnitude of a vector
 ** @return A pointer to a new vector object
 */
-float magnitude(Vec * vec1);
+double magnitude(Vec * vec1);
 /*
 ** Calculate normalized vector
 ** @param vec1 The vector to normalize
@@ -76,4 +78,4 @@ void norm_Vec(Vec * vec1, Vec * result);
 ** @param scalar The scalar by which to multiply the vector
 ** @param result Vector in which to store result
 */
-void multiply_Vec(Vec * vec1, float scalar, Vec * result);
+void multiply_Vec(Vec * vec1, double scalar, Vec * result);

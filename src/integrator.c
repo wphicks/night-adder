@@ -24,13 +24,13 @@ Integrator * create_Integrator(int thread_count, Particle ** particles, int part
 
   new_int->pair_count = (particle_count - 1) * particle_count / 2;
 
-  new_int->square_sum_radii = malloc(new_int->pair_count * sizeof(float));
+  new_int->square_sum_radii = malloc(new_int->pair_count * sizeof(double));
   calc_square_sum_radii(new_int);
 
-  new_int->pair_restitution = malloc(new_int->pair_count * sizeof(float));
+  new_int->pair_restitution = malloc(new_int->pair_count * sizeof(double));
   calc_restitution_pairs(new_int);
 
-  new_int->pair_reduced_mass = malloc(new_int->pair_count * sizeof(float));
+  new_int->pair_reduced_mass = malloc(new_int->pair_count * sizeof(double));
   calc_mass_pairs(new_int);
 
   return new_int;
@@ -45,7 +45,7 @@ void free_Integrator(Integrator * old_int) {
 }
 
 void calc_square_sum_radii(Integrator * integ) {
-  float radii_sum;
+  double radii_sum;
   int i;
   int j;
   for(i=0; i < integ->particle_count; ++i) {
@@ -89,16 +89,16 @@ int pair_index(Integrator * integ, int i, int j) {
   }
 }
 
-float pair_dist_square(Integrator * integ, int i, int j) {
+double pair_dist_square(Integrator * integ, int i, int j) {
   return distance_square(integ->particles[i]->position, integ->particles[j]->position);
 }
 
 int collide(Integrator * integ, int i, int j) {
   Particle * part1 = integ->particles[i];
   Particle * part2 = integ->particles[j];
-  float collision_projection;
-  float impulse_coefficient;
-  float dist2 = distance_square(part1->position, part2->position);
+  double collision_projection;
+  double impulse_coefficient;
+  double dist2 = distance_square(part1->position, part2->position);
   if (dist2 > integ->square_sum_radii[pair_index(integ, i, j)]) {
     return 0;
   }

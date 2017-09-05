@@ -10,9 +10,9 @@ typedef struct {
   Particle ** particles; /**< Array of pointers to particles */
   int particle_count; /**< Number of particles */
   int pair_count; /**< Number of particle pairs */
-  float * square_sum_radii; /**< Array of the square of the sum of radii for all particle pairs */
-  float * pair_restitution; /**< Array of the min coefficient of restitution for all particle pairs */
-  float * pair_reduced_mass; /**< Array of the sum of reduced masses for all pairs */
+  double * square_sum_radii; /**< Array of the square of the sum of radii for all particle pairs */
+  double * pair_restitution; /**< Array of the min coefficient of restitution for all particle pairs */
+  double * pair_reduced_mass; /**< Array of the sum of reduced masses for all pairs */
 } Integrator;
 
 /*

@@ -7,7 +7,7 @@ Vec * create_Vec() {
   Vec * new_vec = malloc(sizeof(Vec));
   int i;
   for (i = 0; i < VECDIM; ++i) {
-    new_vec->components[i] = 0;
+    new_vec->components[i].as_double = 0;
   }
   return new_vec;
 }
@@ -19,57 +19,63 @@ void free_Vec(Vec * vec){
 void sum_Vec(Vec * vec1, Vec * vec2, Vec * result) {
   int i;
   for (i = 0; i < VECDIM; ++i) {
-    result->components[i] = vec1->components[i] + vec2->components[i];
+    result->components[i].as_double = (
+      vec1->components[i].as_double + vec2->components[i].as_double
+    );
   }
 }
 
 void diff_Vec(Vec * vec1, Vec * vec2, Vec * result) {
   int i;
   for (i = 0; i < VECDIM; ++i) {
-    result->components[i] = vec1->components[i] - vec2->components[i];
+    result->components[i].as_double = (
+      vec1->components[i].as_double - vec2->components[i].as_double
+    );
   }
 }
 
-float dot_Vec(Vec * vec1, Vec * vec2) {
-  float prod = 0.0f;
+double dot_Vec(Vec * vec1, Vec * vec2) {
+  double prod = 0.0;
   int i;
   for (i = 0; i < VECDIM; ++i) {
-    prod += vec1->components[i] * vec2->components[i];
+    prod += vec1->components[i].as_double * vec2->components[i].as_double;
   }
   return prod;
 }
 
-float distance_square(Vec * point1, Vec * point2) {
-  float result = 0.0f;
+double distance_square(Vec * point1, Vec * point2) {
+  double result = 0.0;
   int i;
-  float comp_diff;
+  double comp_diff;
   for (i = 0; i < VECDIM; ++i) {
-    comp_diff = point1->components[i] - point2->components[i];
+    comp_diff = (
+      point1->components[i].as_double - point2->components[i].as_double
+    );
     result += comp_diff * comp_diff;
   }
   return result;
 }
 
-float distance(Vec * vec1, Vec * vec2) {
+double distance(Vec * vec1, Vec * vec2) {
   return sqrt(distance_square(vec1, vec2));
 }
 
-float magnitude_square(Vec * vec1) {
+double magnitude_square(Vec * vec1) {
   return dot_Vec(vec1, vec1);
 }
 
-float magnitude(Vec * vec1) {
+double magnitude(Vec * vec1) {
   return sqrt(magnitude_square(vec1));
 }
 
 void norm_Vec(Vec * vec1, Vec * result) {
-  float inv_mag = 1/magnitude(vec1);
+  double inv_mag = 1/magnitude(vec1);
   multiply_Vec(vec1, inv_mag, result);
 }
 
-void multiply_Vec(Vec * vec1, float scalar, Vec * result) {
+void multiply_Vec(Vec * vec1, double scalar, Vec * result) {
   int i;
   for (i = 0; i < VECDIM; ++i) {
-    result->components[i] = vec1->components[i] * scalar;
+    result->components[i].as_double = vec1->components[i].as_double * scalar;
   }
 }

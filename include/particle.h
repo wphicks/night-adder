@@ -4,9 +4,9 @@
 typedef struct {
   Vec * position;
   Vec * velocity;
-  float inv_mass;
-  float restitution;
-  float radius;
+  double inv_mass;
+  double restitution;
+  double radius;
 } Particle;
 
 /*
@@ -16,7 +16,7 @@ typedef struct {
 ** @return A pointer to a newly initialized Particle object.
 ** @see free_Particle
 */
-Particle * create_Particle(float mass, float radius, float restitution);
+Particle * create_Particle(double mass, double radius, double restitution);
 /*
 ** Destroy a Particle, freeing allocated memory.
 */
