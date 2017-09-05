@@ -30,7 +30,7 @@ Integrator * create_Integrator(int thread_count, Particle ** particles, int part
   new_int->pair_restitution = malloc(new_int->pair_count * sizeof(float));
   calc_restitution_pairs(new_int);
 
-  new_int->pair_inv_mass = malloc(new_int->pair_count * sizeof(float));
+  new_int->pair_reduced_mass = malloc(new_int->pair_count * sizeof(float));
   calc_mass_pairs(new_int);
 
   return new_int;
@@ -40,7 +40,7 @@ void free_Integrator(Integrator * old_int) {
   free(old_int->workers);
   free(old_int->square_sum_radii);
   free(old_int->pair_restitution);
-  free(old_int->pair_inv_mass);
+  free(old_int->pair_reduced_mass);
   free(old_int);
 }
 
@@ -74,7 +74,7 @@ void calc_mass_pairs(Integrator * integ) {
   int j;
   for(i=0; i < integ->particle_count; ++i) {
     for(j=i+1; j < integ->particle_count; ++j) {
-      integ->pair_inv_mass[pair_index(integ, i, j)] = (
+      integ->pair_reduced_mass[pair_index(integ, i, j)] = (
         1 / (integ->particles[i]->inv_mass + integ->particles[j]->inv_mass)
       );
     }
@@ -116,7 +116,7 @@ int collide(Integrator * integ, int i, int j) {
   impulse_coefficient = (
     -(1 + integ->pair_restitution[pair_index(integ, i, j)]) *
     collision_projection *
-    integ->pair_inv_mass[pair_index(integ, i, j)]
+    integ->pair_reduced_mass[pair_index(integ, i, j)]
   );
   multiply_Vec(*(integ->swap_vecs + 0), impulse_coefficient, *(integ->swap_vecs + 0));
   multiply_Vec(*(integ->swap_vecs + 0), -part2->inv_mass, *(integ->swap_vecs + 1));

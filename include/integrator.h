@@ -12,7 +12,7 @@ typedef struct {
   int pair_count; /**< Number of particle pairs */
   float * square_sum_radii; /**< Array of the square of the sum of radii for all particle pairs */
   float * pair_restitution; /**< Array of the min coefficient of restitution for all particle pairs */
-  float * pair_inv_mass; /**< Array of the sum of inverse masses for all pairs */
+  float * pair_reduced_mass; /**< Array of the sum of reduced masses for all pairs */
 } Integrator;
 
 /*

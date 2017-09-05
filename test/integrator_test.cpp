@@ -57,9 +57,9 @@ TEST_F(IntegratorTest, index_Test) {
 }
 
 TEST_F(IntegratorTest, create_Test) {
-  EXPECT_FLOAT_EQ(5.0f, calc->square_sum_radii[pair_index(calc, 0, 1)]);
+  EXPECT_FLOAT_EQ(9.0f, calc->square_sum_radii[pair_index(calc, 0, 1)]);
   EXPECT_FLOAT_EQ(2.0f, calc->pair_restitution[pair_index(calc, 0, 1)]);
-  EXPECT_FLOAT_EQ(1.5f, calc->pair_inv_mass[pair_index(calc, 0, 1)]);
+  EXPECT_FLOAT_EQ(0.75f, calc->pair_reduced_mass[pair_index(calc, 1, 2)]);
 }
 
 TEST_F(IntegratorTest, samedir_Test) {
