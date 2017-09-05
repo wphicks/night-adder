@@ -72,16 +72,23 @@ TEST_F(IntegratorTest, samedir_Test) {
 
 TEST_F(IntegratorTest, oppdir_Test) {
   EXPECT_EQ(1, collide(calc, 0, 2));
-  EXPECT_FLOAT_EQ(-1.8f, calc->particles[0]->velocity->components[0]);
+  EXPECT_FLOAT_EQ(-1.6f, calc->particles[0]->velocity->components[0]);
   EXPECT_FLOAT_EQ(2.0f, calc->particles[0]->velocity->components[1]);
-  EXPECT_FLOAT_EQ(1.6f, calc->particles[2]->velocity->components[0]);
+  EXPECT_FLOAT_EQ(1.4f, calc->particles[2]->velocity->components[0]);
   EXPECT_FLOAT_EQ(0.0f, calc->particles[2]->velocity->components[1]);
+}
+
+TEST_F(IntegratorTest, moving_apart_Test) {
+  EXPECT_EQ(1, collide(calc, 0, 3));
+  EXPECT_FLOAT_EQ(2.0f, calc->particles[0]->velocity->components[0]);
+  EXPECT_FLOAT_EQ(2.0f, calc->particles[0]->velocity->components[1]);
+  EXPECT_FLOAT_EQ(-1.0f, calc->particles[3]->velocity->components[0]);
+  EXPECT_FLOAT_EQ(0.0f, calc->particles[3]->velocity->components[1]);
 }
 
 TEST_F(IntegratorTest, nocollide_Test) {
   EXPECT_EQ(0, collide(calc, 1, 2));
   EXPECT_EQ(0, collide(calc, 2, 3));
-  EXPECT_EQ(0, collide(calc, 0, 3));
 }
 
 int main(int argc, char **argv) {
