@@ -3,18 +3,25 @@ BASEBUILDDIR:=build
 TESTDIR=test
 SRCDIR=src
 INCDIR=include
+VIPERINCDIR=../viper-engine
 
 CC=clang
-CFLAGS=-Wall -std=c99 -pthread -g
-INCFLAGS=-Iinclude
+CFLAGS=-Wall -std=c99 -pthread
+INCFLAGS=-I$(INCDIR) $(addprefix -I, $(VIPERINCDIR))
 LDTESTFLAGS=-lgtest -lgtest_main -lpthread -lrt
 
 CXX=clang++
-CXXFLAGS=-Wall -std=c++14 -g
+CXXFLAGS=-Wall -std=c++14
 
 # Configurable options
 PROFFLAGS=-p
 DEBUGFLAGS=-DDEBUG
+
+RELEASE ?= 0
+ifeq ($(RELEASE), 0)
+    CFLAGS+=-g
+    CXXFLAGS+=-g
+endif
 
 GCC ?= 0
 ifeq ($(GCC), 1)
@@ -44,7 +51,7 @@ endif
 TARGETS=$(TESTS)
 TESTS=$(BUILDDIR)/vector_test $(BUILDDIR)/particle_test $(BUILDDIR)/integrator_test
 
-.PHONY: all test memtest objdump clean
+.PHONY: all test memtest objdump clean viper
 
 all : $(TARGETS)
 
@@ -64,9 +71,13 @@ objdump: $(TARGETS)
 	done
 
 clean:
-	rm $(BUILDDIR)/*
+	rm $(BUILDDIR)/*;\
+	$(MAKE) RELEASE=$(RELEASE) DEBUG=$(DEBUG) PROFILE=$(PROFILE) OPT=$(OPT) GCC=$(GCC) -C ../viper-engine clean
 
-$(BUILDDIR)/vector.o: $(SRCDIR)/vector.c $(INCDIR)/vector.h
+viper:
+	$(MAKE) RELEASE=$(RELEASE) DEBUG=$(DEBUG) PROFILE=$(PROFILE) OPT=$(OPT) GCC=$(GCC) -C ../viper-engine
+
+$(BUILDDIR)/vector.o: $(SRCDIR)/vector.c $(INCDIR)/vector.h viper
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/vector.c -o $(BUILDDIR)/vector.o
 $(BUILDDIR)/vector_test: $(BUILDDIR)/vector.o $(TESTDIR)/vector_test.cpp
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(BUILDDIR)/vector.o $(TESTDIR)/vector_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/vector_test
