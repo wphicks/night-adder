@@ -109,12 +109,12 @@ int collide(Integrator * integ, int i, int j) {
   /* Below line needs to be atomic */
   diff_Vec(part2->velocity, part1->velocity, *(integ->swap_vecs + 1)); /* Velocity diff */
   collision_projection = dot_Vec(*(integ->swap_vecs + 0), *(integ->swap_vecs + 1));
-  if (collision_projection < 0) { /* Already moving apart */
+  if (collision_projection > 0) { /* Already moving apart */
     return 1;
   }
 
   impulse_coefficient = (
-    -(1 + integ->pair_restitution[pair_index(integ, i, j)]) *
+    (1 + integ->pair_restitution[pair_index(integ, i, j)]) *
     collision_projection *
     integ->pair_reduced_mass[pair_index(integ, i, j)]
   );

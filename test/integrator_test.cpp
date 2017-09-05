@@ -19,7 +19,7 @@ class IntegratorTest : public ::testing::Test {
     all_parts[0]->position->components[0] = 0.0f;
     all_parts[0]->position->components[1] = 0.0f;
     all_parts[0]->velocity->components[0] = 2.0f;
-    all_parts[0]->velocity->components[1] = 0.0f;
+    all_parts[0]->velocity->components[1] = 2.0f;
 
     all_parts[1] = create_Particle(1, 1, 3);
     all_parts[1]->position->components[0] = 0.0f;
