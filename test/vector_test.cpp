@@ -13,8 +13,8 @@ class vectorTest : public ::testing::Test {
   double sum[2] = {1.0, 2.0};
   double diff[2] = {5.0, 6.0};
   double norm[2] = {0.6, 0.8};
-  const static int thread_cycles = 100;
-  const static int worker_count = 4;
+  static const int thread_cycles = 100;
+  static const int worker_count = 4;
   thread_t workers[4];
 
   static void threaded_sum(void * vecs) {
