@@ -3,7 +3,7 @@ BASEBUILDDIR:=build
 TESTDIR=test
 SRCDIR=src
 INCDIR=include
-VIPERINCDIR=../viper-engine ../viper-engine/thread
+VIPERINCDIR=../viper-engine ../viper-engine/thread ../viper-engine/containers
 VIPERBASEBUILDDIR=../viper-engine/build
 
 CC=clang
