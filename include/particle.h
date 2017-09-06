@@ -21,3 +21,16 @@ Particle * create_Particle(double mass, double radius, double restitution);
 ** Destroy a Particle, freeing allocated memory.
 */
 void free_Particle(Particle * old_particle);
+
+/*
+** Update particle's position based on its velocity.
+**
+** @param dt The time-step for the update.
+*/
+void update_Particle_position(Particle * cur_part, double dt);
+/*
+** Atomically update particle's position based on its velocity.
+**
+** @param dt The time-step for the update.
+*/
+void atomic_update_Particle_position(Particle * cur_part, double dt);

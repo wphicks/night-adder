@@ -17,3 +17,15 @@ void free_Particle(Particle * old_particle) {
   free_Vec(old_particle->velocity);
   free(old_particle);
 }
+
+void update_Particle_position(Particle * cur_part, double dt) {
+  Vec update_vec = *(cur_part->velocity);
+  multiply_Vec(&update_vec, dt, &update_vec);
+  sum_Vec(cur_part->position, &update_vec, cur_part->position);
+}
+
+void atomic_update_Particle_position(Particle * cur_part, double dt) {
+  Vec update_vec = *(cur_part->velocity);
+  multiply_Vec(&update_vec, dt, &update_vec);
+  atomic_isum_Vec(cur_part->position, &update_vec);
+}
