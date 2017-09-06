@@ -14,6 +14,8 @@
 
 thread_t create_thread(void function(void *), void * args);
 
+void init_thread(thread_t * cur_thread, void function(void *), void * args);
+
 void join_thread(thread_t other_thread);
 
 void detach_thread(thread_t other_thread);

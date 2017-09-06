@@ -6,11 +6,20 @@
 
 Vec * create_Vec() {
   Vec * new_vec = malloc(sizeof(Vec));
+  double components[VECDIM];
   int i;
   for (i = 0; i < VECDIM; ++i) {
-    new_vec->components[i].as_double = 0;
+    components[i] = 0;
   }
+  init_Vec(new_vec, components);
   return new_vec;
+}
+
+void init_Vec(Vec * vec, double components[VECDIM]) {
+  int i;
+  for (i = 0; i < VECDIM; ++i) {
+    vec->components[i].as_double = components[i];
+  }
 }
 
 void free_Vec(Vec * vec){

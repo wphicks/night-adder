@@ -8,6 +8,11 @@ thread_t create_thread(void function(void *), void * args) {
   return new_thread;
 }
 
+void init_thread(thread_t * cur_thread, void function(void *), void * args) {
+  *cur_thread = malloc(sizeof(pthread_t));
+  pthread_create(*cur_thread, NULL, (void*(*)(void *)) function, args);
+}
+
 void join_thread(thread_t other_thread) {
   pthread_join(*other_thread, NULL);
 }
