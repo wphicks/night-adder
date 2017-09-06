@@ -2,8 +2,8 @@
 #include "vector.h"
 
 typedef struct {
-  Vec * position;
-  Vec * velocity;
+  Vec position;
+  Vec velocity;
   double inv_mass;
   double restitution;
   double radius;
@@ -16,7 +16,11 @@ typedef struct {
 ** @return A pointer to a newly initialized Particle object.
 ** @see free_Particle
 */
-Particle * create_Particle(double mass, double radius, double restitution);
+Particle * create_Particle();
+/*
+** Initialize a Particle's members
+*/
+void init_Particle(Particle * part, double mass, double radius, double restitution);
 /*
 ** Destroy a Particle, freeing allocated memory.
 */
