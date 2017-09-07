@@ -10,21 +10,8 @@
 #include "particle_pair.h"
 #include "integrator.h"
 
-typedef struct {
-  Integrator * integ;
-  int index;
-} thread_spec;
-
-Integrator * create_Integrator(
-    int thread_count, int particle_count, Particle * particles) {
-  Integrator * new_int = malloc(sizeof(Integrator));
-  init_Integrator(new_int, 1, 0, NULL);
-  return new_int;
-}
-
 void init_Integrator(
-    Integrator * integ, int thread_count,
-    int particle_count, Particle * particles) {
+    Integrator * integ, int particle_count, Particle * particles) {
 
   int i;
   int j;
@@ -54,16 +41,10 @@ void init_Integrator(
     }
     *(integ->update_count + i) = 0;
   }
-
-
-  integ->thread_count = thread_count; 
-  integ->workers = malloc(thread_count * sizeof(thread_t));
-
 }
 
 void cleanup_Integrator(Integrator * old_int) {
   free(old_int->pairs);
-  free(old_int->workers);
   free(old_int->queue_buffer);
   free(old_int->update_count);
 }
@@ -96,21 +77,21 @@ void finalize_frame(Integrator * integ, int index) {
 }
 
 void worker_loop(void * args) {
-  thread_spec * spec = (thread_spec *) args;
+  Integrator * integ = (Integrator *) args;
   /* TODO: Sweep and prune (Also think about data locality).*/
   void * retrieved;
   ParticlePair * cur_pair;
 
   for (;;) {
-    vqueue_pop(spec->integ->collide_queue, &retrieved);
+    vqueue_pop(integ->collide_queue, &retrieved);
     cur_pair = (ParticlePair *) retrieved;
-    finalize_frame(spec->integ, cur_pair->i);
-    finalize_frame(spec->integ, cur_pair->j);
+    finalize_frame(integ, cur_pair->i);
+    finalize_frame(integ, cur_pair->j);
 
-    collide(spec->integ, cur_pair);
+    collide(integ, cur_pair);
 
-    vatomic32_increment(spec->integ->update_count + cur_pair->i);
-    vatomic32_increment(spec->integ->update_count + cur_pair->j);
+    vatomic32_increment(integ->update_count + cur_pair->i);
+    vatomic32_increment(integ->update_count + cur_pair->j);
     vatomic_barrier();
   }
 

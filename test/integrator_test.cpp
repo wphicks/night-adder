@@ -8,7 +8,6 @@ extern "C" {
 class IntegratorTest : public ::testing::Test {
  protected:
   Integrator calc;
-  int thread_count = 2;
   int particle_count = 4;
   int pair_count = 6;
   Particle * all_parts;
@@ -49,7 +48,7 @@ class IntegratorTest : public ::testing::Test {
       }
     }
 
-    init_Integrator(&calc, thread_count, particle_count, all_parts);
+    init_Integrator(&calc, particle_count, all_parts);
   }
 
   virtual void TearDown() {
