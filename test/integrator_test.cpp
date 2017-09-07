@@ -7,88 +7,93 @@ extern "C" {
 
 class IntegratorTest : public ::testing::Test {
  protected:
-  Integrator * calc;
+  Integrator calc;
+  int thread_count = 2;
   int particle_count = 4;
-  Particle ** all_parts;
-  int thread_count = 1;
+  int pair_count = 6;
+  Particle * all_parts;
+  ParticlePair pairs[6];
+  double pos[4][VECDIM] = {
+    {0.0, 0.0},
+    {0.0, 2.0},
+    {2.0, 0.0},
+    {-2.0, 0.0}
+  };
+  double vel[4][VECDIM] = {
+    {2.0, 2.0},
+    {0.0, 1.0},
+    {-1.0, 0.0},
+    {-1.0, 0.0}
+  };
 
   virtual void SetUp() {
-    all_parts = (Particle **) malloc(particle_count * sizeof(Particle *));
+    int i;
+    int j;
+    int k;
+    all_parts = (Particle *) malloc(particle_count * sizeof(Particle));
 
-    all_parts[0] = create_Particle(2, 2, 2);
-    all_parts[0]->position->components[0].as_double = 0.0;
-    all_parts[0]->position->components[1].as_double = 0.0;
-    all_parts[0]->velocity->components[0].as_double = 2.0;
-    all_parts[0]->velocity->components[1].as_double = 2.0;
+    init_Particle(all_parts + 0, 2, 2, 2);
+    init_Particle(all_parts + 1, 1, 1, 3);
+    init_Particle(all_parts + 2, 3, 1, 1);
+    init_Particle(all_parts + 3, 1, 1, 1);
+    for (i=0; i < particle_count; ++i) {
+      init_Vec(&((all_parts + i)->position), pos[i]);
+      init_Vec(&((all_parts + i)->velocity), vel[i]);
+    }
 
-    all_parts[1] = create_Particle(1, 1, 3);
-    all_parts[1]->position->components[0].as_double = 0.0;
-    all_parts[1]->position->components[1].as_double = 2.0;
-    all_parts[1]->velocity->components[0].as_double = 0.0;
-    all_parts[1]->velocity->components[1].as_double = 1.0;
+    k = 0;
+    for (i=0; i < particle_count; ++i) {
+      for (j=i+1; j < particle_count; ++j) {
+        init_ParticlePair(pairs + k, i, j, particle_count, all_parts);
+        ++k;
+      }
+    }
 
-    all_parts[2] = create_Particle(3, 1, 1);
-    all_parts[2]->position->components[0].as_double = 2.0;
-    all_parts[2]->position->components[1].as_double = 0.0;
-    all_parts[2]->velocity->components[0].as_double = -1.0;
-    all_parts[2]->velocity->components[1].as_double = 0.0;
-
-    all_parts[3] = create_Particle(1, 1, 1);
-    all_parts[3]->position->components[0].as_double = -2.0;
-    all_parts[3]->position->components[1].as_double = 0.0;
-    all_parts[3]->velocity->components[0].as_double = -1.0;
-    all_parts[3]->velocity->components[1].as_double = 0.0;
-
-    calc = create_Integrator(thread_count, all_parts, particle_count);
+    init_Integrator(&calc, thread_count, particle_count, all_parts);
   }
 
   virtual void TearDown() {
-    int i;
-    for (i=0; i < particle_count; ++i) {
-      free_Particle(all_parts[i]);
-    }
-    free_Integrator(calc);
+    cleanup_Integrator(&calc);
   }
 };
 
-TEST_F(IntegratorTest, index_Test) {
-  EXPECT_EQ(particle_count - 3 + 3, pair_index(calc, 1, 3));
-  EXPECT_EQ(particle_count - 3 + 3, pair_index(calc, 3, 1));
-}
-
-TEST_F(IntegratorTest, create_Test) {
-  EXPECT_FLOAT_EQ(9.0, calc->square_sum_radii[pair_index(calc, 0, 1)]);
-  EXPECT_FLOAT_EQ(2.0, calc->pair_restitution[pair_index(calc, 0, 1)]);
-  EXPECT_FLOAT_EQ(0.75, calc->pair_reduced_mass[pair_index(calc, 1, 2)]);
-}
-
 TEST_F(IntegratorTest, samedir_Test) {
-  EXPECT_EQ(1, collide(calc, 0, 1, 0));
-  EXPECT_FLOAT_EQ(2.0, calc->particles[0]->velocity->components[0].as_double);
-  EXPECT_FLOAT_EQ(1.0, calc->particles[0]->velocity->components[1].as_double);
-  EXPECT_FLOAT_EQ(0.0, calc->particles[1]->velocity->components[0].as_double);
-  EXPECT_FLOAT_EQ(3.0, calc->particles[1]->velocity->components[1].as_double);
+  EXPECT_EQ(1,
+    collide(&calc, calc.pairs + pair_index(0, 1, calc.particle_count))
+  );
+  EXPECT_FLOAT_EQ(2.0, calc.particles[0].velocity.components[0].as_double);
+  EXPECT_FLOAT_EQ(1.0, calc.particles[0].velocity.components[1].as_double);
+  EXPECT_FLOAT_EQ(0.0, calc.particles[1].velocity.components[0].as_double);
+  EXPECT_FLOAT_EQ(3.0, calc.particles[1].velocity.components[1].as_double);
 }
 
 TEST_F(IntegratorTest, oppdir_Test) {
-  EXPECT_EQ(1, collide(calc, 0, 2, 0));
-  EXPECT_FLOAT_EQ(-1.6, calc->particles[0]->velocity->components[0].as_double);
-  EXPECT_FLOAT_EQ(2.0, calc->particles[0]->velocity->components[1].as_double);
-  EXPECT_FLOAT_EQ(1.4, calc->particles[2]->velocity->components[0].as_double);
-  EXPECT_FLOAT_EQ(0.0, calc->particles[2]->velocity->components[1].as_double);
+  EXPECT_EQ(1,
+    collide(&calc, calc.pairs + pair_index(0, 2, calc.particle_count))
+  );
+  EXPECT_FLOAT_EQ(-1.6, calc.particles[0].velocity.components[0].as_double);
+  EXPECT_FLOAT_EQ(2.0, calc.particles[0].velocity.components[1].as_double);
+  EXPECT_FLOAT_EQ(1.4, calc.particles[2].velocity.components[0].as_double);
+  EXPECT_FLOAT_EQ(0.0, calc.particles[2].velocity.components[1].as_double);
 }
 
 TEST_F(IntegratorTest, moving_apart_Test) {
-  EXPECT_EQ(1, collide(calc, 0, 3, 0));
-  EXPECT_FLOAT_EQ(2.0, calc->particles[0]->velocity->components[0].as_double);
-  EXPECT_FLOAT_EQ(2.0, calc->particles[0]->velocity->components[1].as_double);
-  EXPECT_FLOAT_EQ(-1.0, calc->particles[3]->velocity->components[0].as_double);
-  EXPECT_FLOAT_EQ(0.0, calc->particles[3]->velocity->components[1].as_double);
+  EXPECT_EQ(1,
+    collide(&calc, calc.pairs + pair_index(0, 3, calc.particle_count))
+  );
+  EXPECT_FLOAT_EQ(2.0, calc.particles[0].velocity.components[0].as_double);
+  EXPECT_FLOAT_EQ(2.0, calc.particles[0].velocity.components[1].as_double);
+  EXPECT_FLOAT_EQ(-1.0, calc.particles[3].velocity.components[0].as_double);
+  EXPECT_FLOAT_EQ(0.0, calc.particles[3].velocity.components[1].as_double);
 }
 
 TEST_F(IntegratorTest, nocollide_Test) {
-  EXPECT_EQ(0, collide(calc, 1, 2, 0));
-  EXPECT_EQ(0, collide(calc, 2, 3, 0));
+  EXPECT_EQ(0,
+    collide(&calc, calc.pairs + pair_index(1, 2, calc.particle_count))
+  );
+  EXPECT_EQ(0,
+    collide(&calc, calc.pairs + pair_index(2, 3, calc.particle_count))
+  );
 }
 
 int main(int argc, char **argv) {

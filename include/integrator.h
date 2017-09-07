@@ -5,50 +5,52 @@
 
 #include "vector.h"
 #include "particle.h"
+#include "particle_pair.h"
 
 typedef struct {
+  int particle_count; /**< Number of particles */
+  Particle * particles; /**< Array of particles */
+
+  int pair_count; /**< Number of particle pairs */
+  ParticlePair * pairs; /**< Array of particle pairs */
+
   int thread_count; /**< Number of worker threads */
   thread_t * workers; /**< Array of worker threads */
-  Vec ** swap_vecs; /**< Temporary vector storage for workers */
-  Particle ** particles; /**< Array of pointers to particles */
-  int particle_count; /**< Number of particles */
-  int pair_count; /**< Number of particle pairs */
 
-  double * square_sum_radii; /**< Array of the square of the sum of radii for all particle pairs */
-  double * pair_restitution; /**< Array of the min coefficient of restitution for all particle pairs */
-  double * pair_reduced_mass; /**< Array of the sum of reduced masses for all pairs */
-
-  vqueue collide_queue;
+  vqueue_t collide_queue;
   void * queue_buffer;
   int32_t * update_count;
+
 } Integrator;
 
 /*
 ** Create an integrator which can be used to calculate physics interactions for
 ** a group of particles.
 ** @return A pointer to a newly initialized Integrator object.
-** @param threadcount The number of threads to use for this Integrator.
-** @see free_Integrator
+** @see init_Integrator
 */
-Integrator * create_Integrator(int thread_count, Particle ** particles, int particle_count);
-/*
-** Destroy an Integrator, freeing allocated memory.
-*/
-void free_Integrator(Integrator *);
+Integrator * create_Integrator(
+  int thread_count, int particle_count, Particle * particles
+);
 
 /*
-** Return index for retrieving information about particle pairs from 1D arrays
-** @param i Index of first particle in pair
-** @param j Index of second particle in pair
-** @return Index of pair information in 1D array
+** Initialize integrator members based on given arguments.
+** @param integ Pointer to the integrator to initialize.
+** @param thread_count The number of worker threads to use for this Integrator.
+** @param particle_count The number of particles this Integrator will work on.
+** @param particles Array of particles to perform calculations
 */
-int pair_index(Integrator * integ, int i, int j);
+void init_Integrator(
+  Integrator * integ, int thread_count,
+  int particle_count, Particle * particles
+);
+/*
+** Free any memory allocated by init_Integrator
+*/
+void cleanup_Integrator(Integrator *);
 
 /*
-** Check if two particles have collided, updating their velocities as necessary
-** @param i Index of first particle in pair
-** @param j Index of second particle in pair
-** @param worker_index Index of worker thread performing calculation
+** Check if pair has collided, updating particle velocities as necessary
 ** @return 1 if particles have collided, otherwise 0
 */
-int collide(Integrator * integ, int i, int j, int worker_index);
+int collide(Integrator * integ, ParticlePair * pair);

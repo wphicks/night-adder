@@ -54,7 +54,7 @@ endif
 
 # Targets
 TARGETS=$(TESTS)
-TESTS=$(BUILDDIR)/vector_test $(BUILDDIR)/particle_test $(BUILDDIR)/integrator_test
+TESTS=$(BUILDDIR)/vector_test $(BUILDDIR)/particle_test $(BUILDDIR)/particle_pair_test $(BUILDDIR)/integrator_test
 
 .PHONY: all test memtest objdump clean viper init
 
@@ -102,7 +102,12 @@ $(BUILDDIR)/particle.o: $(SRCDIR)/particle.c $(INCDIR)/particle.h
 $(BUILDDIR)/particle_test: $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(TESTDIR)/particle_test.cpp
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(VIPERBUILDDIR)/vatomic.o $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(TESTDIR)/particle_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/particle_test
 
+$(BUILDDIR)/particle_pair.o: $(SRCDIR)/particle_pair.c $(INCDIR)/particle_pair.h
+	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/particle_pair.c -o $(BUILDDIR)/particle_pair.o
+$(BUILDDIR)/particle_pair_test: $(BUILDDIR)/particle_pair.o $(TESTDIR)/particle_pair_test.cpp
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(VIPERBUILDDIR)/vatomic.o $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/particle_pair.o $(TESTDIR)/particle_pair_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/particle_pair_test
+
 $(BUILDDIR)/integrator.o: $(SRCDIR)/integrator.c $(INCDIR)/integrator.h
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/integrator.c -o $(BUILDDIR)/integrator.o
-$(BUILDDIR)/integrator_test: $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp
-	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(VIPERBUILDDIR)/vatomic.o $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/integrator_test
+$(BUILDDIR)/integrator_test: $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/particle_pair.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(VIPERBUILDDIR)/vatomic.o $(VIPERBUILDDIR)/vqueue.o $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/particle_pair.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/integrator_test
