@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <math.h>
+#include <tgmath.h>
 #include "vector.h"
 #include "vbase.h"
 #include "vatomic.h"
@@ -33,8 +33,9 @@ void atomic_isum_Vec(Vec * vec1, Vec * vec2) {
       vatomic_barrier();
       cur_comp = vec1->components[i];
       cur_sum.as_double = cur_comp.as_double + vec2->components[i].as_double;
+      vatomic_barrier();
       if (vatomic64_compare_exchange(
-            &vec1->components[i].as_int, cur_comp.as_int, cur_sum.as_int
+            &(vec1->components[i].as_int), cur_comp.as_int, cur_sum.as_int
           ) == cur_comp.as_int){
         break;
       }

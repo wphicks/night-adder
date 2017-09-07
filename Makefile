@@ -9,7 +9,7 @@ VIPERBASEBUILDDIR=../viper-engine/build
 CC=clang
 CFLAGS=-Wall -std=c99 -pthread
 INCFLAGS=-I$(INCDIR) $(addprefix -I, $(VIPERINCDIR))
-LDTESTFLAGS=-lgtest -lgtest_main -lpthread -lrt
+LDTESTFLAGS=-lgtest -lgtest_main -lpthread -lrt -lm
 
 CXX=clang++
 CXXFLAGS=-Wall -std=c++14
