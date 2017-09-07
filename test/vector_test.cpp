@@ -14,8 +14,8 @@ class vectorTest : public ::testing::Test {
   double sum[VECDIM] = {1.0, 2.0};
   double diff[VECDIM] = {5.0, 6.0};
   double norm[VECDIM] = {0.6, 0.8};
-  static const int thread_cycles = 100;
-  static const int worker_count = 4;
+  static const int thread_cycles = 1000;
+  static const int worker_count = 10;
   thread_t workers[4];
 
   static void threaded_sum(void * vecs) {
