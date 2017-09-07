@@ -2,12 +2,6 @@
 #include "vector.h"
 #include "particle.h"
 
-Particle * create_Particle(double mass, double radius, double restitution) {
-  Particle * new_part = malloc(sizeof(Particle));
-  init_Particle(new_part, 0, 0, 0);
-  return new_part;
-}
-
 void init_Particle(Particle * part, double mass, double radius, double restitution) {
   double zero[VECDIM];
   int i;
@@ -23,10 +17,6 @@ void init_Particle(Particle * part, double mass, double radius, double restituti
   part->restitution = restitution;
   init_Vec(&part->position, zero);
   init_Vec(&part->velocity, zero);
-}
-
-void free_Particle(Particle * old_particle) {
-  free(old_particle);
 }
 
 void update_Particle_position(Particle * cur_part, double dt) {
