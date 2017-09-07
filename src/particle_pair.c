@@ -5,12 +5,6 @@
 
 #include "particle_pair.h"
 
-ParticlePair * create_ParticlePair() {
-  ParticlePair * new_pair = malloc(sizeof(ParticlePair));
-  init_ParticlePair(new_pair, 0, 1, 2, NULL);
-  return new_pair;
-}
-
 void init_ParticlePair(
     ParticlePair * pair, int i, int j, int count, Particle * all_particles) {
   double radii_sum;
@@ -41,10 +35,6 @@ void init_ParticlePair(
     pair->square_sum_radii = radii_sum * radii_sum;
 
   }
-}
-
-void free_ParticlePair(ParticlePair * old_pair){
-  free(old_pair);
 }
 
 int pair_index(int i, int j, int count){

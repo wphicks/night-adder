@@ -11,13 +11,6 @@ typedef struct {
 } ParticlePair;
 
 /*
-** Create a fully initialized ParticlePair.
-** @return A pointer to a newly initialized ParticlePair struct.
-** @see free_ParticlePair
-** @see initParticlePair
-*/
-ParticlePair * create_ParticlePair();
-/*
 ** Initialize a ParticlePair's member values.
 ** @param pair Pointer to the ParticlePair to initialize.
 ** @param i Index of first particle in pair
@@ -27,10 +20,6 @@ ParticlePair * create_ParticlePair();
 */
 void init_ParticlePair(
   ParticlePair * pair, int i, int j, int count, Particle * all_particles);
-/*
-** Destroy a ParticlePair, freeing allocated memory.
-*/
-void free_ParticlePair(ParticlePair *);
 /*
 ** Return the index corresponding to the pair i, j in count particles.
 */
