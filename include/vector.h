@@ -9,19 +9,9 @@ typedef struct {
 } Vec;
 
 /*
-** Create a vector.
-** @return A pointer to a newly initialized Vec struct.
-** @see free_Vec
-*/
-Vec * create_Vec();
-/*
 ** Initialize a vector's components to given values
 */
 void init_Vec(Vec * vec, double components[VECDIM]);
-/*
-** Destroy a vector, freeing allocated memory.
-*/
-void free_Vec(Vec * vec);
 
 /*
 ** Calculate the vector sum of two vectors
