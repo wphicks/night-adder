@@ -5,10 +5,13 @@
 #include "vqueue.h"
 
 #include "nathread.h"
+#include "natime.h"
 #include "vector.h"
 #include "particle.h"
 #include "particle_pair.h"
 #include "integrator.h"
+
+void finalize_frame(Integrator * integ);
 
 void init_Integrator(
     Integrator * integ, int particle_count, Particle * particles) {
@@ -19,7 +22,7 @@ void init_Integrator(
 
   integ->particle_count = particle_count; 
   integ->particles = particles;
-  integ->update_count = malloc(integ->particle_count * sizeof(int32_t));
+  integ->particle_update_count = malloc(integ->particle_count * sizeof(int32_t));
 
 
   integ->pair_count = pair_index(
@@ -39,14 +42,22 @@ void init_Integrator(
       vqueue_push(integ->collide_queue, (void *) (integ->pairs + k));
       ++k;
     }
-    *(integ->update_count + i) = 0;
+    *(integ->particle_update_count + i) = 0;
   }
+
+  integ->dt = 0.001;
+
+  integ->frame_update_count = 0;
+  integ->prev_frame_time = 0;
+  finalize_frame(integ);
+  integ->time_accumulator.as_double = 0.0;
+  integ->interp_alpha.as_double = 0.0;
 }
 
 void cleanup_Integrator(Integrator * old_int) {
   free(old_int->pairs);
   free(old_int->queue_buffer);
-  free(old_int->update_count);
+  free(old_int->particle_update_count);
 }
 
 double pair_dist_square(Integrator * integ, ParticlePair * pair) {
@@ -55,18 +66,32 @@ double pair_dist_square(Integrator * integ, ParticlePair * pair) {
   );
 }
 
-void finalize_frame(Integrator * integ, int index) {
+void finalize_frame(Integrator *integ) {
+  vatomic_barrier();
+  if (
+      vatomic32_compare_exchange(
+        &(integ->frame_update_count), 0, integ->particle_count
+      ) == 0) {
+    integ->time_accumulator.as_double -= integ->dt;
+    if (integ->time_accumulator.as_double < integ->dt) {
+      integ->time_accumulator.as_double += __min(natime() - integ->prev_frame_time, 0.25);
+      integ->interp_alpha.as_double = integ->time_accumulator.as_double / integ->dt;
+    }
+  }
+}
+
+void finalize_particle(Integrator * integ, int index) {
   int k;
   vatomic_barrier();
   if (
       vatomic32_compare_exchange(
-        integ->update_count + index, integ->particle_count - 1, 0
+        integ->particle_update_count + index, integ->particle_count - 1, 0
       ) == integ->particle_count - 1) {
     /* The following is atomic for the pathological case that all collisions for
      * this particle are re-evaluated before its position can finish updating
      */
-    atomic_update_Particle_position(integ->particles + index, 0.1);
-    /* TODO: Properly set dt in the above */
+    atomic_update_Particle_position(integ->particles + index, integ->dt);
+    vatomic32_decrement(&(integ->frame_update_count));
     for (
         k = pair_index(index, index+1, integ->particle_count);
         k < pair_index(index, integ->particle_count, integ->particle_count);
@@ -83,16 +108,18 @@ void worker_loop(void * args) {
   ParticlePair * cur_pair;
 
   for (;;) {
-    vqueue_pop(integ->collide_queue, &retrieved);
-    cur_pair = (ParticlePair *) retrieved;
-    finalize_frame(integ, cur_pair->i);
-    finalize_frame(integ, cur_pair->j);
+    if (vqueue_pop(integ->collide_queue, &retrieved)) {
+      cur_pair = (ParticlePair *) retrieved;
 
-    collide(integ, cur_pair);
+      collide(integ, cur_pair);
 
-    vatomic32_increment(integ->update_count + cur_pair->i);
-    vatomic32_increment(integ->update_count + cur_pair->j);
-    vatomic_barrier();
+      vatomic32_increment(integ->particle_update_count + cur_pair->i);
+      vatomic32_increment(integ->particle_update_count + cur_pair->j);
+      finalize_particle(integ, cur_pair->i);
+      finalize_particle(integ, cur_pair->j);
+
+      finalize_frame(integ);
+    }
   }
 
 }

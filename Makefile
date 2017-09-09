@@ -54,7 +54,7 @@ endif
 
 # Targets
 TARGETS=$(TESTS)
-TESTS=$(BUILDDIR)/vector_test $(BUILDDIR)/particle_test $(BUILDDIR)/particle_pair_test $(BUILDDIR)/integrator_test
+TESTS=$(BUILDDIR)/vector_test $(BUILDDIR)/particle_test $(BUILDDIR)/particle_pair_test $(BUILDDIR)/integrator_test $(BUILDDIR)/threaded_integrator_test
 
 .PHONY: all test memtest objdump clean viper init
 
@@ -91,6 +91,8 @@ init:
 
 $(BUILDDIR)/nathread.o: $(SRCDIR)/nathread.linux.c $(INCDIR)/nathread.h
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/nathread.linux.c -o $(BUILDDIR)/nathread.o
+$(BUILDDIR)/natime.o: $(SRCDIR)/natime.linux.c $(INCDIR)/natime.h
+	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/natime.linux.c -o $(BUILDDIR)/natime.o
 
 $(BUILDDIR)/vector.o: $(SRCDIR)/vector.c $(INCDIR)/vector.h viper
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/vector.c -o $(BUILDDIR)/vector.o
@@ -109,5 +111,7 @@ $(BUILDDIR)/particle_pair_test: $(BUILDDIR)/particle_pair.o $(TESTDIR)/particle_
 
 $(BUILDDIR)/integrator.o: $(SRCDIR)/integrator.c $(INCDIR)/integrator.h
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $(SRCDIR)/integrator.c -o $(BUILDDIR)/integrator.o
-$(BUILDDIR)/integrator_test: $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/particle_pair.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp
-	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(VIPERBUILDDIR)/vatomic.o $(VIPERBUILDDIR)/vqueue.o $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/particle_pair.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/integrator_test
+$(BUILDDIR)/integrator_test: $(BUILDDIR)/natime.o $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/particle_pair.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(VIPERBUILDDIR)/vatomic.o $(VIPERBUILDDIR)/vqueue.o $(BUILDDIR)/natime.o $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/particle_pair.o $(BUILDDIR)/integrator.o $(TESTDIR)/integrator_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/integrator_test
+$(BUILDDIR)/threaded_integrator_test: $(BUILDDIR)/nathread.o $(BUILDDIR)/natime.o $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/particle_pair.o $(BUILDDIR)/integrator.o $(TESTDIR)/threaded_integrator_test.cpp
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(VIPERBUILDDIR)/vatomic.o $(VIPERBUILDDIR)/vqueue.o $(BUILDDIR)/nathread.o $(BUILDDIR)/natime.o $(BUILDDIR)/vector.o $(BUILDDIR)/particle.o $(BUILDDIR)/particle_pair.o $(BUILDDIR)/integrator.o $(TESTDIR)/threaded_integrator_test.cpp $(LDTESTFLAGS) -o $(BUILDDIR)/threaded_integrator_test

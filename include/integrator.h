@@ -1,8 +1,10 @@
 #pragma once
 #include "nathread.h"
 
+#include "vbase.h"
 #include "vqueue.h"
 
+#include "nabase.h"
 #include "vector.h"
 #include "particle.h"
 #include "particle_pair.h"
@@ -14,9 +16,18 @@ typedef struct {
   int pair_count; /**< Number of particle pairs */
   ParticlePair * pairs; /**< Array of particle pairs */
 
-  vqueue_t collide_queue;
-  void * queue_buffer;
-  int32_t * update_count;
+  vqueue_t collide_queue; /**< Queue of pairs to be checked for collisions */
+  void * queue_buffer; /**< Memory buffer allocated for collide_queue*/
+  int32_t * particle_update_count; /**< Array tracking how many times each
+                                     particle has been checked for collisions
+                                     this frame */
+  int32_t frame_update_count; /**< Tracks how many particles remain to be updated this frame */
+  atomic_double time_accumulator; /**< Time waiting to be integrated */
+
+  atomic_double interp_alpha; /**< Interpolation factor between frames */ 
+
+  double dt; /**< Integration time step */
+  uint64_t prev_frame_time; /**< Time this frame started */
 
 } Integrator;
 
@@ -41,3 +52,9 @@ void cleanup_Integrator(Integrator *);
 ** @return 1 if particles have collided, otherwise 0
 */
 int collide(Integrator * integ, ParticlePair * pair);
+/*
+** Continuously integrate simulation in a worker thread.
+** This method can be called as many times as desired in various threads to add
+** workers to integration.
+*/
+void worker_loop(void * integrator);
