@@ -14,6 +14,11 @@ typedef struct {
 void init_Vec(Vec * vec, double components[VECDIM]);
 
 /*
+** Copy a vector component-wise from dest to source.
+*/
+void copy_Vec(Vec * source, Vec * dest);
+
+/*
 ** Calculate the vector sum of two vectors
 ** @param vec1 One vector to be summed
 ** @param vec2 Second vector to be summed

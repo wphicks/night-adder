@@ -15,6 +15,13 @@ void free_Vec(Vec * vec){
   free(vec);
 }
 
+void copy_Vec(Vec * source, Vec * dest) {
+  int i;
+  for (i = 0; i < VECDIM; ++i) {
+    dest->components[i] = source->components[i];
+  }
+}
+
 void sum_Vec(Vec * vec1, Vec * vec2, Vec * result) {
   int i;
   for (i = 0; i < VECDIM; ++i) {

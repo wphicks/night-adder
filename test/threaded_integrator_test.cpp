@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <stdlib.h>
-#include <stdio.h>
+#include <math.h>
 #include <chrono>
 #include <thread>
 extern "C" {
@@ -15,7 +15,7 @@ class ThreadedIntegratorTest : public ::testing::Test {
   int particle_count = 6;
   int pair_count = 15;
   Particle * all_parts;
-  ParticlePair pairs[6];
+  ParticlePair pairs[15];
   double pos[6][VECDIM] = {
     {0.0, 0.0},
     {2.0, 0.0},
@@ -44,6 +44,7 @@ class ThreadedIntegratorTest : public ::testing::Test {
     {6.0, 0.0},
     {-5.0, 0.0},
   };
+  int32_t worker_count = 2;
   thread_t workers[2];
 
   virtual void SetUp() {
@@ -69,6 +70,7 @@ class ThreadedIntegratorTest : public ::testing::Test {
   }
 
   virtual void TearDown() {
+    stop_workers(&calc, worker_count);
     cleanup_Integrator(&calc);
   }
 };
@@ -76,18 +78,26 @@ class ThreadedIntegratorTest : public ::testing::Test {
 TEST_F(ThreadedIntegratorTest, workerloop_Test) {
   int i;
   int j;
+  Vec fudge;
   void * args = (void *) &calc;
-  init_thread(workers + 0, worker_loop, args);
-  init_thread(workers + 1, worker_loop, args);
-  detach_thread(workers[0]);
-  detach_thread(workers[1]);
+  for (i=0; i < worker_count; ++i) {
+    init_thread(workers + i, worker_loop, args);
+  }
+  for (i=0; i < worker_count; ++i) {
+    detach_thread(workers[i]);
+  }
   integrate_interval(&calc, 1.0);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   for (i=0; i < particle_count; ++i) {
+    multiply_Vec(
+      &(calc.particles[i].velocity), 2 * calc.interp_alpha.as_double * calc.dt,
+      &fudge
+    );
     for (j=0; j < VECDIM; ++j) {
-      printf("%d, %d\n", i, j);
-      EXPECT_DOUBLE_EQ(
-        posfinal[i][j], calc.particles[i].position.components[j].as_double
+      EXPECT_NEAR(
+        posfinal[i][j],
+        calc.particles[i].position.components[j].as_double,
+        fabs(fudge.components[j].as_double)
       );
     }
   }

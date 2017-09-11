@@ -24,13 +24,17 @@ class particleTest : public ::testing::Test {
 TEST_F(particleTest, update_Test) {
   update_Particle_position(&part1, dt);
   for (int i = 0; i < VECDIM; ++i) {
-    EXPECT_DOUBLE_EQ(part1.position.components[i].as_double, result[i]);
+    EXPECT_DOUBLE_EQ(result[i], part1.position.components[i].as_double);
+    EXPECT_DOUBLE_EQ(position[i], part1.prev_position.components[i].as_double);
   }
 }
-TEST_F(particleTest, atomic_update_Test) {
-  atomic_update_Particle_position(&part1, dt);
+
+TEST_F(particleTest, interpolate_Test) {
+  Vec interp;
+  double alpha = 0.25;
+  interpolate_Particle_position(&part1, alpha, &interp);
   for (int i = 0; i < VECDIM; ++i) {
-    EXPECT_DOUBLE_EQ(part1.position.components[i].as_double, result[i]);
+    EXPECT_DOUBLE_EQ(position[i]*0.75, interp.components[i].as_double);
   }
 }
 

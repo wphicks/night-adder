@@ -27,8 +27,9 @@ typedef struct {
   atomic_double interp_alpha; /**< Interpolation factor between frames */ 
 
   double dt; /**< Integration time step */
-  double remaining_time; /**< Remaining time requested for integration*/
-  int cycles;
+  atomic_double remaining_time; /**< Remaining time requested for integration*/
+
+  int32_t finished_workers; /**< Tracks how many worker threads have returned */
 
 } Integrator;
 
@@ -55,10 +56,18 @@ void cleanup_Integrator(Integrator *);
 int collide(Integrator * integ, ParticlePair * pair);
 /*
 ** Continuously integrate simulation in a worker thread.
-** This method can be called as many times as desired in various threads to add
-** workers to integration.
+** This function can be called as many times as desired in various threads to
+** add workers to integration.
 */
 void worker_loop(void * integrator);
+/*
+** Cause all worker threads to return.
+** This function should be called to allow a clean shutdown of all running
+** integrator threads. It depends on being given an accurate count of how many
+** workers it currently has. If desired, a new group of workers may safely be
+** added after this function returns.
+*/
+void stop_workers(Integrator * integ, int32_t worker_count);
 /*
 ** Request that integrator integrate given interval of time (in seconds).
 ** Note that this assumes at least one worker_loop has been started to actually

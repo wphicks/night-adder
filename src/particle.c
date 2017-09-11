@@ -16,17 +16,22 @@ void init_Particle(Particle * part, double mass, double radius, double restituti
   part->radius = radius;
   part->restitution = restitution;
   init_Vec(&part->position, zero);
+  init_Vec(&part->prev_position, zero);
   init_Vec(&part->velocity, zero);
 }
 
 void update_Particle_position(Particle * cur_part, double dt) {
+  copy_Vec(&(cur_part->position), &(cur_part->prev_position));
   Vec update_vec = cur_part->velocity;
   multiply_Vec(&update_vec, dt, &update_vec);
   sum_Vec(&(cur_part->position), &update_vec, &(cur_part->position));
 }
 
-void atomic_update_Particle_position(Particle * cur_part, double dt) {
-  Vec update_vec = cur_part->velocity;
-  multiply_Vec(&update_vec, dt, &update_vec);
-  atomic_isum_Vec(&(cur_part->position), &update_vec);
+void interpolate_Particle_position(
+    Particle * part, double alpha, Vec * result) {
+  Vec tmp1;
+  Vec tmp2;
+  multiply_Vec(&(part->prev_position), alpha, &tmp1);
+  multiply_Vec(&(part->position), 1.0 - alpha, &tmp2);
+  sum_Vec(&tmp1, &tmp2, result);
 }

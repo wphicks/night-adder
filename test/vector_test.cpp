@@ -53,6 +53,13 @@ class vectorTest : public ::testing::Test {
   }
 };
 
+TEST_F(vectorTest, copyTest) {
+  copy_Vec(test_vecs, test_vecs + 1);
+  for (int i = 0; i < VECDIM; ++i) {
+    EXPECT_DOUBLE_EQ(test_vecs->components[i].as_double, (test_vecs + 1)->components[i].as_double);
+  }
+}
+
 TEST_F(vectorTest, sumTest) {
   sum_Vec(test_vecs, test_vecs + 1, test_vecs + 3);
   for (int i = 0; i < VECDIM; ++i) {

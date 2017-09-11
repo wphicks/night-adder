@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <stdio.h>
 
 #include "vbase.h"
 #include "vatomic.h"
@@ -48,9 +47,10 @@ void init_Integrator(
   integ->frame_update_count = integ->particle_count;
 
   integ->dt = 0.001;
-  integ->remaining_time = 0.0;
+  integ->remaining_time.as_double = 0.0;
   integ->interp_alpha.as_double = 0.0;
-  integ->cycles = 0;
+
+  integ->finished_workers = -1;
 }
 
 void cleanup_Integrator(Integrator * old_int) {
@@ -79,16 +79,27 @@ void fill_queue(Integrator *integ) {
 }
 
 void finalize_frame(Integrator *integ) {
+  atomic_double remaining_time;
+  atomic_double new_remaining_time;
   vatomic_barrier();
   if (
       vatomic32_compare_exchange(
         &(integ->frame_update_count), 0, integ->particle_count
       ) == 0) {  /* Every particle's position updated once */
-    printf("Time: %f\n", (++integ->cycles) * integ->dt);
-    integ->remaining_time -= integ->dt;
-    if (integ->remaining_time < integ->dt) {  /* Frame complete */
-      printf("Final Time: %f\n", (integ->cycles) * integ->dt + integ->remaining_time);
-      integ->interp_alpha.as_double = integ->remaining_time / integ->dt;
+    for (;;) { /* Decrement remaining time*/
+      remaining_time.as_double = integ->remaining_time.as_double;
+      new_remaining_time.as_double = remaining_time.as_double - integ->dt;
+      if (
+          vatomic64_compare_exchange(
+            &(integ->remaining_time.as_int), remaining_time.as_int,
+            new_remaining_time.as_int
+          ) == remaining_time.as_int) {
+        break;
+      }
+    }
+    vatomic_barrier();
+    if (integ->remaining_time.as_double < integ->dt) {  /* Frame complete */
+      integ->interp_alpha.as_double = integ->remaining_time.as_double / integ->dt;
     } else {  /* Keep calculating, frame not done */
       fill_queue(integ);
     }
@@ -117,6 +128,10 @@ void worker_loop(void * args) {
   ParticlePair * cur_pair;
 
   for (;;) {
+    if (integ->finished_workers >= 0) { /* Work done; clean up */
+      vatomic32_increment(&integ->finished_workers);
+      return;
+    }
     if (vqueue_pop(integ->collide_queue, &retrieved)) {
       cur_pair = (ParticlePair *) retrieved;
       /* Check pair from queue for collisions, updating velocities of each if
@@ -134,15 +149,42 @@ void worker_loop(void * args) {
        * requested interval of time. If not, refill the queue of pairs to check
        * for collision */
       finalize_frame(integ);
-    }
+    } /* TODO: Else improve sorting? */
   }
 
 }
 
 
+void stop_workers(Integrator * integ, int32_t worker_count) {
+  integ->finished_workers = 0;
+  for (;;) {
+    vatomic_barrier();
+    if (integ->finished_workers >= worker_count) {
+      break;
+    }
+  }
+  integ->finished_workers = -1;
+}
+
+
 void integrate_interval(Integrator * integ, double interval) {
-  integ->remaining_time = interval;
-  fill_queue(integ);
+  atomic_double remaining_time;
+  atomic_double new_remaining_time;
+  for (;;) { /* Decrement remaining time*/
+    remaining_time.as_double = integ->remaining_time.as_double;
+    new_remaining_time.as_double = remaining_time.as_double + interval;
+    if (
+        vatomic64_compare_exchange(
+          &(integ->remaining_time.as_int), remaining_time.as_int,
+          new_remaining_time.as_int
+        ) == remaining_time.as_int) {
+      break;
+    }
+  }
+  /* If we were already done with the previous interval... */
+  if (remaining_time.as_double < integ->dt) {
+    fill_queue(integ);
+  }
 }
 
 
@@ -175,9 +217,7 @@ int collide(Integrator * integ, ParticlePair * pair) {
   multiply_Vec(&swap0, -part2->inv_mass, &swap1);
   multiply_Vec(&swap0, part1->inv_mass, &swap0);
 
-  printf("COLLISION: %d, %d: Position: %f, %f; V0: %f, %f", pair->i, pair->j, part1->position.components[0].as_double, part1->position.components[1].as_double, part1->velocity.components[0].as_double, part1->velocity.components[1].as_double);
   atomic_isum_Vec(&(part1->velocity), &swap0);
-  printf(" VF: %f, %f\n", part1->velocity.components[0].as_double, part1->velocity.components[1].as_double);
   atomic_isum_Vec(&(part2->velocity), &swap1);
   return 1;
 }
