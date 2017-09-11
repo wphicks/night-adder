@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "vbase.h"
 #include "vatomic.h"
@@ -39,19 +40,17 @@ void init_Integrator(
         integ->pairs + k, i, j, integ->particle_count,
         integ->particles
       );
-      vqueue_push(integ->collide_queue, (void *) (integ->pairs + k));
       ++k;
     }
-    *(integ->particle_update_count + i) = 0;
+    *(integ->particle_update_count + i) = integ->particle_count - 1;
   }
 
-  integ->dt = 0.001;
+  integ->frame_update_count = integ->particle_count;
 
-  integ->frame_update_count = 0;
-  integ->prev_frame_time = 0;
-  finalize_frame(integ);
-  integ->time_accumulator.as_double = 0.0;
+  integ->dt = 0.001;
+  integ->remaining_time = 0.0;
   integ->interp_alpha.as_double = 0.0;
+  integ->cycles = 0;
 }
 
 void cleanup_Integrator(Integrator * old_int) {
@@ -66,38 +65,48 @@ double pair_dist_square(Integrator * integ, ParticlePair * pair) {
   );
 }
 
+void fill_queue(Integrator *integ) {
+  int i;
+  int j;
+  int k;
+  k = 0;
+  for (i=0; i < integ->particle_count; ++i) {
+    for (j=i+1; j < integ->particle_count; ++j) {
+      vqueue_push(integ->collide_queue, (void *) (integ->pairs + k));
+      ++k;
+    }
+  }
+}
+
 void finalize_frame(Integrator *integ) {
   vatomic_barrier();
   if (
       vatomic32_compare_exchange(
         &(integ->frame_update_count), 0, integ->particle_count
-      ) == 0) {
-    integ->time_accumulator.as_double -= integ->dt;
-    if (integ->time_accumulator.as_double < integ->dt) {
-      integ->time_accumulator.as_double += __min(natime() - integ->prev_frame_time, 0.25);
-      integ->interp_alpha.as_double = integ->time_accumulator.as_double / integ->dt;
+      ) == 0) {  /* Every particle's position updated once */
+    printf("Time: %f\n", (++integ->cycles) * integ->dt);
+    integ->remaining_time -= integ->dt;
+    if (integ->remaining_time < integ->dt) {  /* Frame complete */
+      printf("Final Time: %f\n", (integ->cycles) * integ->dt + integ->remaining_time);
+      integ->interp_alpha.as_double = integ->remaining_time / integ->dt;
+    } else {  /* Keep calculating, frame not done */
+      fill_queue(integ);
     }
   }
 }
 
 void finalize_particle(Integrator * integ, int index) {
-  int k;
   vatomic_barrier();
   if (
       vatomic32_compare_exchange(
-        integ->particle_update_count + index, integ->particle_count - 1, 0
-      ) == integ->particle_count - 1) {
-    /* The following is atomic for the pathological case that all collisions for
-     * this particle are re-evaluated before its position can finish updating
-     */
-    atomic_update_Particle_position(integ->particles + index, integ->dt);
+        integ->particle_update_count + index, 0, integ->particle_count - 1
+      ) == 0) {  /* All collisions checked for this particle once */
+    /* The following need not be atomic, since particle's position will not be
+     * touched by any other thread until after the frame_update_count is
+     * decremented to 0. This cannot happen until the following line at the
+     * earliest.*/
+    update_Particle_position(integ->particles + index, integ->dt);
     vatomic32_decrement(&(integ->frame_update_count));
-    for (
-        k = pair_index(index, index+1, integ->particle_count);
-        k < pair_index(index, integ->particle_count, integ->particle_count);
-        ++k) {
-      vqueue_push(integ->collide_queue, (void *) (integ->pairs + k));
-    }
   }
 }
 
@@ -110,18 +119,30 @@ void worker_loop(void * args) {
   for (;;) {
     if (vqueue_pop(integ->collide_queue, &retrieved)) {
       cur_pair = (ParticlePair *) retrieved;
-
+      /* Check pair from queue for collisions, updating velocities of each if
+       * necessary */
       collide(integ, cur_pair);
-
-      vatomic32_increment(integ->particle_update_count + cur_pair->i);
-      vatomic32_increment(integ->particle_update_count + cur_pair->j);
+      /* Decrement counter for remaining collisions to be checked for each
+       * particle */
+      vatomic32_decrement(integ->particle_update_count + cur_pair->i);
+      vatomic32_decrement(integ->particle_update_count + cur_pair->j);
+      /* If all collisions have been checked, particle's velocity has been
+       * finalized for this cycle. Go ahead and update its position */
       finalize_particle(integ, cur_pair->i);
       finalize_particle(integ, cur_pair->j);
-
+      /* If all particles have been updated, check to see if we have integrated
+       * requested interval of time. If not, refill the queue of pairs to check
+       * for collision */
       finalize_frame(integ);
     }
   }
 
+}
+
+
+void integrate_interval(Integrator * integ, double interval) {
+  integ->remaining_time = interval;
+  fill_queue(integ);
 }
 
 
@@ -154,7 +175,9 @@ int collide(Integrator * integ, ParticlePair * pair) {
   multiply_Vec(&swap0, -part2->inv_mass, &swap1);
   multiply_Vec(&swap0, part1->inv_mass, &swap0);
 
+  printf("COLLISION: %d, %d: Position: %f, %f; V0: %f, %f", pair->i, pair->j, part1->position.components[0].as_double, part1->position.components[1].as_double, part1->velocity.components[0].as_double, part1->velocity.components[1].as_double);
   atomic_isum_Vec(&(part1->velocity), &swap0);
+  printf(" VF: %f, %f\n", part1->velocity.components[0].as_double, part1->velocity.components[1].as_double);
   atomic_isum_Vec(&(part2->velocity), &swap1);
   return 1;
 }

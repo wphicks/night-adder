@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <chrono>
 #include <thread>
 extern "C" {
@@ -19,28 +20,28 @@ class ThreadedIntegratorTest : public ::testing::Test {
     {0.0, 0.0},
     {2.0, 0.0},
     {-2.0, 0.0},
-    {0.0, 6.0},
-    {6.0, 0.0},
+    {0.0, 5.0},
+    {7.0, 0.0},
     {-6.0, 0.0},
   };
   double vel[6][VECDIM] = {
     {1.0, 1.0},
     {-1.0, 0.0},
     {-1.0, 0.0},
-    {0.0, -2.0},
+    {0.0, -1.0},
     {-1.0, 0.0},
     {1.0, 0.0},
   };
-  double masses[6] = {2.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+  double masses[6] = {3.0, 1.0, 1.0, 3.0, 1.0, 1.0};
   double radii[6] = {2.0, 1.0, 1.0, 1.0, 1.0, 1.0};
   double restitutions[6] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
   double posfinal[6][VECDIM] = {
     {0.0, 1.0},
-    {3.0, 0.0},
+    {4.0, 0.0},
     {-3.0, 0.0},
     {0.0, 4.0},
-    {5.0, 0.0},
+    {6.0, 0.0},
     {-5.0, 0.0},
   };
   thread_t workers[2];
@@ -80,9 +81,11 @@ TEST_F(ThreadedIntegratorTest, workerloop_Test) {
   init_thread(workers + 1, worker_loop, args);
   detach_thread(workers[0]);
   detach_thread(workers[1]);
+  integrate_interval(&calc, 1.0);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   for (i=0; i < particle_count; ++i) {
     for (j=0; j < VECDIM; ++j) {
+      printf("%d, %d\n", i, j);
       EXPECT_DOUBLE_EQ(
         posfinal[i][j], calc.particles[i].position.components[j].as_double
       );

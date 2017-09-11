@@ -27,7 +27,8 @@ typedef struct {
   atomic_double interp_alpha; /**< Interpolation factor between frames */ 
 
   double dt; /**< Integration time step */
-  uint64_t prev_frame_time; /**< Time this frame started */
+  double remaining_time; /**< Remaining time requested for integration*/
+  int cycles;
 
 } Integrator;
 
@@ -58,3 +59,9 @@ int collide(Integrator * integ, ParticlePair * pair);
 ** workers to integration.
 */
 void worker_loop(void * integrator);
+/*
+** Request that integrator integrate given interval of time (in seconds).
+** Note that this assumes at least one worker_loop has been started to actually
+** perform the necessary calculations.
+*/
+void integrate_interval(Integrator * integ, double interval);
